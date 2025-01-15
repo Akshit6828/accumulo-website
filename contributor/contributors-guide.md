@@ -16,7 +16,7 @@ issue, please do the following :
  * Close the JIRA issue as a duplicate.
 
 Eventually, JIRA will be transitioned to a read-only state for reference.  For
-finding issues to work, there may still be 
+finding issues to work, there may still be
 [open issues labeled for newbies][newbie-issues] in JIRA.
 
 ## GitHub Project Boards (Projects)
@@ -56,8 +56,6 @@ For details about governance policies for the Accumulo project view the followin
 
 - [Bylaws][bylaws]
 - [Consensus Building][consensus]
-- [Lazy Consensus][lazy]
-- [Voting][voting]
 
 [How to Contribute]: /how-to-contribute/
 [newbie-issues]: https://s.apache.org/newbie_accumulo_tickets
@@ -69,5 +67,5 @@ For details about governance policies for the Accumulo project view the followin
 [testing]: /contributor/testing-release
 [bylaws]: {{ site.baseurl }}/contributor/bylaws
 [consensus]: {{ site.baseurl }}/contributor/consensusBuilding
-[lazy]: {{ site.baseurl }}/contributor/lazyConsensus
-[voting]: {{ site.baseurl }}/contributor/voting
+[IntelliJ]: https://www.jetbrains.com/idea/download
+[Eclipse]: https://www.eclipse.org/downloads/packages

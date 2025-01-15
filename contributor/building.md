@@ -6,7 +6,7 @@ title: Building Accumulo
 
 If you activate the 'thrift' Maven profile, the build of some modules will attempt to run the Apache Thrift command line to regenerate
 stubs. If you activate this profile and don't have Apache Thrift installed and in your path, you will see a warning and
-your build will fail. For Accumulo 1.5.0 and greater, install Thrift 0.9 and make sure that the 'thrift' command is in your path. 
+your build will fail. For Accumulo 1.5.0 and greater, install Thrift 0.9 and make sure that the 'thrift' command is in your path.
 Watch out for THRIFT-1367; you may need to configure Thrift with --without-ruby. Most developers do not
 need to install or modify the Thrift definitions as a part of developing against Apache Accumulo.
 
@@ -18,9 +18,9 @@ You should familiarize yourself with the [Maven Build Lifecycle][lifecycle], as 
 
 To build from source (for example, to deploy):
 
-    mvn package -Passemble
+    mvn package
 
-This will create a file `accumulo-*-SNAPSHOT-dist.tar.gz` in the assemble/target directory. Optionally, append `-DskipTests` if you want to skip the build tests.
+This will create a file `accumulo-*-SNAPSHOT-bin.tar.gz` in the assemble/target directory. Optionally, append `-DskipTests` if you want to skip the build tests.
 
 To build your branch before submitting a pull request, you'll probably want to run some basic "sunny-day" integration tests to ensure you haven't made any grave errors, as well as `checkstyle` and `findbugs`:
 

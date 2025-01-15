@@ -58,7 +58,7 @@ SimpleScanDispatcher supports an `executor` option for choosing a scan
 executor.  If this option is not set, then SimpleScanDispatcher will dispatch
 to the scan executor named `default`.
 
-To to tie everything together, consider the following use case.
+To tie everything together, consider the following use case.
 
  * Create tables named LOW1 and LOW2 using a scan executor with a single thread.
  * Create a table named HIGH with a dedicated scan executor with 8 threads.
@@ -89,7 +89,7 @@ config -t HIGH -s table.scan.dispatcher=org.apache.accumulo.core.spi.scan.Simple
 config -t HIGH -s table.scan.dispatcher.opts.executor=high
 ```
 
-While not necessary because its the default, it is safer to also set
+While not necessary because it's the default, it is safer to also set
 `table.scan.dispatcher=org.apache.accumulo.core.spi.scan.SimpleScanDispatcher`
 for each table.  This ensures things work as expected in the case where
 `table.scan.dispatcher` was set at the system or namespace level.
@@ -97,7 +97,7 @@ for each table.  This ensures things work as expected in the case where
 ### Configuring and using Scan Prioritizers.
 
 When all scan executor threads are busy, incoming work is queued.  By
-default this queue has a FIFO order.  A {% jlink org.apache.accumulo.core.spi.scan.ScanPrioritizer %} can be configured to
+default, this queue has a FIFO order.  A {% jlink org.apache.accumulo.core.spi.scan.ScanPrioritizer %} can be configured to
 reorder the queue.  Accumulo ships with the {% jlink org.apache.accumulo.core.spi.scan.IdleRatioScanPrioritizer %} which
 orders the queue by the ratio of run time to idle time.  For example, a scan
 with a run time of 50ms and an idle time of 200ms would have a ratio of .25.
@@ -141,7 +141,7 @@ configuration.
 
 The `SimpleScanDispatcher`, which is the default dispatcher, supports
 `executor.<type>=<executor>` options. When a scanner sets a hint of the form
-`scan_type=<type>` it will use the executor configured for that type. 
+`scan_type=<type>` it will use the executor configured for that type.
 
 After restarting tservers, the following command will start a scan that uses
 the executor `special` with a priority of 3.  The scan dispatcher maps the scan
@@ -158,6 +158,19 @@ priority of 1.
 ```
 scan -t tex --execution-hints scan_type=alpha
 ```
+
+Execution Hints can also be used to influence how the block caches are used for
+a scan. The following configuration would modify the `gamma` executor to use blocks
+in the cache if they are already cached, but would never load missing blocks into the
+cache.
+
+```
+config -t tex -s table.scan.dispatcher.opts.cacheUsage.gamma=opportunistic
+```
+
+Other valid values are `disabled` which does not use data in the block caches,
+`enabled` which uses the block cache as it normally would and `table` which enables
+the block cache for the scan if it's enabled on the table.
 
 [tserver]: {{ page.docs_baseurl }}/getting-started/design#tablet-server-1
 [setExecutionHints]: {% jurl org.apache.accumulo.core.client.ScannerBase#setExecutionHints-java.util.Map- %}

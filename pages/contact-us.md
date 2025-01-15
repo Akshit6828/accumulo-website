@@ -8,9 +8,33 @@ redirect_from:
 
 Below are ways to get in touch with the Apache Accumulo community.
 
-## Issues
+## Reporting Issues
 
 Accumulo uses GitHub issues to track bugs and new features. Visit [How to contribute](/how-to-contribute) for more information.
+
+## Reporting Security Issues (CVE)
+
+We strongly encourage reporting potential security issues by privately emailing `private@accumulo.apache.org` or 
+`security@apache.org` That means, for example, that you should not create a public GitHub issue, since those would make 
+the issue public. GitHub pull requests and any messages associated with any commits should not make any reference to 
+the security nature of the commit.
+
+The Accumulo project follows the standard [ASF vulnerability handling](https://www.apache.org/security/#asf-security-team) 
+process as outlined by the ASF Security Team.
+
+An overview of the process is:
+- The reporter reports the vulnerability privately to Accumulo community by sending an email to 
+`private@accumulo.apache.org` or the ASF Security Team  `security@apache.org`.
+- The Accumulo project works privately with the reporter to resolve the vulnerability.
+- The Accumulo project creates a new release of the package the vulnerability affects to deliver its fix.
+- The Accumulo project publicly announces the vulnerability and describes how to apply the fix.
+
+Please:
+1. Do not make information about the vulnerability public until it is formally announced by the Accumulo community.
+2. Do not email the user, dev mailing or any public mailing list
+3. Do not send a message via Slack
+4. Do not create a GitHub issue
+5. Do not create a GitHub pull request that makes any reference to the security nature of the commit.
 
 ## Mailing Lists
 
@@ -21,10 +45,10 @@ follow discussions as they happen.
 {: .table }
 | Name              | Description                                      | Read | Follow | Post |
 |-------------------|--------------------------------------------------|------|--------|------|
-| **user**          | General user questions, help, and announcements  | [<span class="glyphicon glyphicon-search"/> Archive][U_A] | [<span class="glyphicon glyphicon-plus"/> Subscribe][U_SU] [<span class="glyphicon glyphicon-remove"/> Unsubscribe][U_UN] | [<span class="glyphicon glyphicon-envelope"/> Post][U_P] |
-| **dev**           | Contributor discussions and development activity | [<span class="glyphicon glyphicon-search"/> Archive][D_A] | [<span class="glyphicon glyphicon-plus"/> Subscribe][D_SU] [<span class="glyphicon glyphicon-remove"/> Unsubscribe][D_UN] | [<span class="glyphicon glyphicon-envelope"/> Post][D_P] |
-| **commits**       | Code changes                                     | [<span class="glyphicon glyphicon-search"/> Archive][C_A] | [<span class="glyphicon glyphicon-plus"/> Subscribe][C_SU] [<span class="glyphicon glyphicon-remove"/> Unsubscribe][C_UN] | |
-| **notifications** | Automated notifications (GitHub, etc.)             | [<span class="glyphicon glyphicon-search"/> Archive][N_A] | [<span class="glyphicon glyphicon-plus"/> Subscribe][N_SU] [<span class="glyphicon glyphicon-remove"/> Unsubscribe][N_UN] | |
+| **user**          | General user questions, help, and announcements  | [<span class="fa-solid fa-magnifying-glass"></span> Archive][U_A] | [<span class="fa-solid fa-plus"></span> Subscribe][U_SU] [<span class="fa-solid fa-xmark"></span> Unsubscribe][U_UN] | [<span class="fa-solid fa-envelope"></span> Post][U_P] |
+| **dev**           | Contributor discussions and development activity | [<span class="fa-solid fa-magnifying-glass"></span> Archive][D_A] | [<span class="fa-solid fa-plus"></span> Subscribe][D_SU] [<span class="fa-solid fa-xmark"></span> Unsubscribe][D_UN] | [<span class="fa-solid fa-envelope"></span> Post][D_P] |
+| **commits**       | Code changes                                     | [<span class="fa-solid fa-magnifying-glass"></span> Archive][C_A] | [<span class="fa-solid fa-plus"></span> Subscribe][C_SU] [<span class="fa-solid fa-xmark"></span> Unsubscribe][C_UN] | |
+| **notifications** | Automated notifications (GitHub, etc.)             | [<span class="fa-solid fa-magnifying-glass"></span> Archive][N_A] | [<span class="fa-solid fa-plus"></span> Subscribe][N_SU] [<span class="fa-solid fa-xmark"></span> Unsubscribe][N_UN] | |
 
 ## Slack
 

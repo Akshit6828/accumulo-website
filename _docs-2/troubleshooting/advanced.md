@@ -11,7 +11,7 @@ order: 2
 The primary reason a tablet server loses its lock is that it has been pushed into swap.
 
 A large java program (like the tablet server) may have a large portion
-of its memory image unused.  The operation system will favor pushing
+of its memory image unused.  The operating system will favor pushing
 this allocated, but unused memory into swap so that the memory can be
 re-used as a disk buffer.  When the java virtual machine decides to
 access this memory, the OS will begin flushing disk buffers to return that
@@ -116,7 +116,7 @@ Ensure your client has adequate memory and is not being swapped out to disk.
 **I had disastrous HDFS failure.  After bringing everything back up, several tablets refuse to go online.**
 
 Data written to tablets is written into memory before being written into indexed files.  In case the server
-is lost before the data is saved into a an indexed file, all data stored in memory is first written into a
+is lost before the data is saved into an indexed file, all data stored in memory is first written into a
 write-ahead log (WAL).  When a tablet is re-assigned to a new tablet server, the write-ahead logs are read to
 recover any mutations that were in memory when the tablet was last hosted.
 
@@ -149,7 +149,7 @@ You can remove the WAL references in the metadata table.
 
 Note: the colon (`:`) is omitted when specifying the _row cf cq_ for the delete command.
 
-The master will automatically discover the tablet no longer has a bad WAL reference and will
+The manager will automatically discover the tablet no longer has a bad WAL reference and will
 assign the tablet.  You will need to remove the reference from all the tablets to get them
 online.
 
@@ -195,7 +195,7 @@ The directory structure in HDFS for tables will follow the general structure:
     /accumulo/tables/2/t-00001/A000007.rf
 
 If files under `/accumulo/tables` are corrupt, the best course of action is to
-recover those files in hdsf see the section on HDFS. Once these recovery efforts
+recover those files in hdfs see the section on HDFS. Once these recovery efforts
 have been exhausted, the next step depends on where the missing file(s) are
 located. Different actions are required when the bad files are in Accumulo data
 table files or if they are metadata table files.
@@ -232,7 +232,7 @@ before creating the new instance.  You will not be able to use RestoreZookeeper
 because the table names and references are likely to be different between the
 original and the new instances, but it can serve as a reference.
 
-If the files cannot be recovered, replace corrupt data files with a empty
+If the files cannot be recovered, replace corrupt data files with an empty
 rfiles to allow references in the metadata table and in the tablet servers to be
 resolved. Rebuild the metadata table if the corrupt files are metadata files.
 
@@ -245,7 +245,7 @@ WAL file, never being able to succeed.
 
 In the cases where the WAL file's original contents are unrecoverable or some degree
 of data loss is acceptable (beware if the WAL file contains updates to the Accumulo
-metadata table!), the following process can be followed to create an valid, empty
+metadata table!), the following process can be followed to create a valid, empty
 WAL file. Run the following commands as the Accumulo unix user (to ensure that
 the proper file permissions in HDFS)
 
@@ -261,7 +261,7 @@ with the empty WAL.
     $ hdfs dfs -mv /user/accumulo/empty.wal /accumulo/wal/tserver-4.example.com+10011/26abec5b-63e7-40dd-9fa1-b8ad2436606e
 
 After the corrupt WAL file has been replaced, the system should automatically recover.
-It may be necessary to restart the Accumulo Master process as an exponential
+It may be necessary to restart the Accumulo Manager process as an exponential
 backup policy is used which could lead to a long wait before Accumulo will
 try to re-load the WAL file.
 
@@ -330,18 +330,23 @@ overridden by using the `--local-wal-directories` option on the tool. It can be 
 
     accumulo org.apache.accumulo.tserver.log.LocalWALRecovery
 
-**I am trying to start the master after upgrading but the upgrade is aborting with the following message:**
+**I am trying to start the manager after upgrading but the upgrade is aborting with the following message:**
   `org.apache.accumulo.core.client.AccumuloException: Aborting upgrade because there are outstanding FATE transactions from a previous Accumulo version.`
 
-You can use the shell to delete completed FATE transactions using the following:
+For versions 2.1 and later, you can use the admin fate command to delete completed FATE transactions using the following:
 
 * Start tservers
 * Start shell
-* Run `fate print` to list all
-* If completed, just delete with `fate delete`
-* Start masters once there are no more fate operations
+* Run `accumulo admin fate --print` to list all transactions
+* If the transactions have completed, just delete with them with `accumulo admin fate --delete TXID [TXID...]`
+* Start managers once there are no more fate operations
 
 If any of the operations are not complete, you should rollback the upgrade and troubleshoot completing them with your prior version.
+
+Prior to 2.1, the same steps apply, but the fate command is accessed with the Accumulo shell instead of the admin command.  The shell commands are as follows: 
+
+use `fate print` to list transactions
+use `fate delete` to delete completed transactions
 
 ## File Naming Conventions
 

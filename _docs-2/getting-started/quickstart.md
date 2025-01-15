@@ -4,7 +4,7 @@ category: getting-started
 order: 1
 skip_doc_h1: true
 ---
-# User Manual (2.x)
+# User Manual (2.x and 3.x)
 
 Starting with Accumulo 2.0, the user manual now lives on the website as a series
 of web pages. Previously, it was one large pdf document that was only generated
@@ -15,6 +15,12 @@ The manual can now be searched using the [Search link][search] at the top of the
 website or navigated by clicking the links to the left. If you are new to
 Accumulo, follow the instructions below to get started. For detailed
 instructions, see the [in-depth installation guide][in-depth].
+
+## Master/Manager naming
+
+As of release 2.1, all references to "master" have been changed to "manager." If you are using/installing
+a release prior to 2.1, substitute "master" in place of "manager" for any property name, file name, or
+process name referenced in this documentation.
 
 ## Setup for testing or development
 
@@ -67,14 +73,14 @@ The primary configuration files for Accumulo are [accumulo.properties],
 `conf/` directory.
 
 The [accumulo.properties] file configures Accumulo server processes (i.e. tablet
-server, master, monitor, etc). Follow these steps to set it up:
+server, manager, monitor, etc). Follow these steps to set it up:
 
 1. Run `accumulo-util build-native` to build native code. If this command fails,
    disable native maps by setting {% plink tserver.memory.maps.native.enabled %}
    to `false`.
 
 2. Set {% plink instance.volumes %} to HDFS location where Accumulo will store
-   data. If your namenode is running at 192.168.1.9:8020 and you want to store
+   data. If your namenode is running at 192.168.1.9:8020, and you want to store
    data in `/accumulo` in HDFS, then set {% plink instance.volumes %} to
    `hdfs://192.168.1.9:8020/accumulo`.
 
@@ -100,12 +106,12 @@ The [accumulo-env.sh] file sets up environment variables needed by Accumulo:
    used if you would like to change tserver memory usage in the `JAVA_OPTS`
    section of [accumulo-env.sh]:
 
-    | Native? | 512MB             | 1GB               | 2GB                 | 3GB           |
-    |---------|-------------------|-------------------|---------------------|---------------|
-    | Yes     | -Xmx384m -Xms384m | -Xmx768m -Xms768m | -Xmx1536m -Xms1536m | -Xmx2g -Xms2g |
-    | No      | -Xmx512m -Xms512m | -Xmx1g -Xms1g     | -Xmx2g -Xms2g       | -Xmx3g -Xms3g |
+   | Native? | 512MB             | 1GB               | 2GB                 | 3GB           |
+   |---------|-------------------|-------------------|---------------------|---------------|
+   | Yes     | -Xmx384m -Xms384m | -Xmx768m -Xms768m | -Xmx1536m -Xms1536m | -Xmx2g -Xms2g |
+   | No      | -Xmx512m -Xms512m | -Xmx1g -Xms1g     | -Xmx2g -Xms2g       | -Xmx3g -Xms3g |
 
-3. (Optional) Review the memory settings for the Accumulo master, garbage collector, and monitor
+3. (Optional) Review the memory settings for the Accumulo manager, garbage collector, and monitor
    in the `JAVA_OPTS` section of [accumulo-env.sh].
 
 The [accumulo-client.properties] file is used by the Accumulo shell and can be
@@ -123,8 +129,13 @@ to configure it.
 
 ## Initialization
 
-Accumulo needs to initialize the locations where it stores data in Zookeeper and
-HDFS. The following command will do this.
+Accumulo needs to initialize the locations where it stores data in Zookeeper and HDFS.
+
+Note: Initialization only needs to be performed once for an instance - if you are performing an
+upgrade you should not run the initialization command a second time unless you really want a new
+instance.
+
+The following command will perform the initialization.
 
 ```
 accumulo init
@@ -160,7 +171,7 @@ Each method above has instructions below.
 
 ### Run individual Accumulo processes
 
-Start Accumulo processes (tserver, master, monitor, etc) using the accumulo
+Start Accumulo processes (tserver, manager, monitor, etc) using the accumulo
 command followed by the service name. For example, to start only the tserver,
 run:
 
@@ -175,7 +186,7 @@ started.
 
 ### Run individual Accumulo services
 
-Start individual Accumulo processes (tserver, master, monitor, etc) as a
+Start individual Accumulo processes (tserver, master, monitor, etc.) as a
 background service using the example accumulo-service script followed by the
 service name. For example, to start only the tserver, run:
 
@@ -196,28 +207,33 @@ from provided templates:
 accumulo-cluster create-config
 ```
 
-This creates five files ([masters], [gc], [monitor], [tservers], & [tracers]) in
-the `conf/` directory that contain the node names where Accumulo services are
-run on your cluster. By default, all files are configured to `localhost`. If you
+This creates a yaml configuration file in the `conf/` directory named
+`cluster.yaml` that contains the node names where Accumulo services are
+run on your cluster. By default, all services are configured to `localhost`. If you
 are running a single-node Accumulo cluster, these files do not need to be
-changed and the next section should be skipped.
+changed and the next section should be skipped. The external compaction services
+exist in the file but are commented out as they are optional.
 
 #### Multi-node configuration
 
-If you are running an Accumulo cluster on multiple nodes, the following files in
-`conf/` should be configured with a newline separated list of node names:
+If you are running an Accumulo cluster on multiple nodes, the `conf/cluster.yaml`
+file contains sections that should be configured with a list of node names in yaml format:
 
- * [masters] : Accumulo primary coordinating process. Must specify one node. Can
+ * [manager] : Accumulo primary coordinating process. Must specify one node. Can
    specify a few for fault tolerance.
  * [gc]      : Accumulo garbage collector. Must specify one node. Can specify a
    few for fault tolerance.
  * [monitor] : Node where Accumulo monitoring web server is run.
- * [tservers] : Accumulo worker processes. List all of the nodes where tablet
-   servers should run in this file.
- * [tracers] : Optional capability. Can specify zero or more nodes.
+ * [tserver] : Accumulo worker processes. List all of the nodes where tablet
+   servers should run.
+ * [sserver] : Optional. List of all nodes where scan servers should run.
+ * [compaction.coordinator] : Optional. Must specify one node. Can specify a few
+   for fault tolerance.
+ * [compaction.compactor] : Optional. Accumulo external compactor processes. List of
+   all nodes where compactors should run.
 
 The Accumulo, Hadoop, and Zookeeper software should be present at the same
-location on every node. Also the files in the `conf` directory must be copied to
+location on every node. Also, the files in the `conf` directory must be copied to
 every node. There are many ways to replicate the software and configuration, two
 possible tools that can help replicate software and/or config are [pdcp] and
 [prsync].
@@ -271,9 +287,12 @@ When finished, use the following commands to stop Accumulo:
 [accumulo-client.properties]: {% durl configuration/files#accumulo-clientproperties %}
 [gc]: {% durl configuration/files#gc %}
 [monitor]: {% durl configuration/files#monitor %}
-[masters]: {% durl configuration/files#masters %}
-[tservers]: {% durl configuration/files#tservers %}
-[tracers]: {% durl configuration/files#tracers %}
+[manager]: {% durl configuration/files#managers %}
+[tserver]: {% durl configuration/files#tservers %}
+[tracer]: {% durl configuration/files#tracers %}
+[compaction.coordinator]: {% durl configuration/files#compaction%20coordinator %}
+[compaction.compactor]: {% durl configuration/files#compaction%20compactor %}
+[sserver]: {% durl configuration/files#sserver %}
 [Uno]: https://github.com/apache/fluo-uno
 [Muchos]: https://github.com/apache/fluo-muchos
 [Erasure Coding]: https://hadoop.apache.org/docs/r3.2.0/hadoop-project-dist/hadoop-hdfs/HDFSErasureCoding.html

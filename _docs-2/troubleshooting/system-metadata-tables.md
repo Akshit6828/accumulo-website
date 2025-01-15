@@ -55,7 +55,7 @@ Let's decode this little session:
     unique tablet server lock data was `13fe86cd27101e5`. The default balancer
     will tend to assign tablets to the last location where its files have been written to
     attempt to improve data locality.
- 
+
 * `loc:13fe86cd27101e5 []    127.0.0.1:9997` -
     Last assigned location for this tablet (its current location, if it is still hosted). It was last assigned to 127.0.0.1:9997, and the
     unique tablet server lock data was `13fe86cd27101e5`.
@@ -74,7 +74,7 @@ Let's decode this little session:
     lock.
 
 * `srv:time []    M1373998392323` -
-    This indicates the time time type (`M` for milliseconds or `L` for logical) and the timestamp of the most recently written key in this tablet.  It is used to ensure automatically assigned key timestamps are strictly increasing for the tablet, regardless of the tablet server's system time.
+    This indicates the time type (`M` for milliseconds or `L` for logical) and the timestamp of the most recently written key in this tablet.  It is used to ensure automatically assigned key timestamps are strictly increasing for the tablet, regardless of the tablet server's system time.
 
 * `~tab:~pr []    \x00` -
     The end-row marker for the previous tablet (prev-row).  The first byte

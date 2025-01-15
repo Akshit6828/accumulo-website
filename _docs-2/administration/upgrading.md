@@ -4,7 +4,133 @@ category: administration
 order: 7
 ---
 
-## Upgrading from 1.8/9 to 2.0
+## Upgrading from 1.10 or 2.0 to 2.1
+
+Please read these directions in their entirety before beginning. Please [contact] us with any
+questions you have about this process.
+
+**IMPORTANT!** Before running any Accumulo 2.1 upgrade utilities or services, you will need to
+upgrade to Java 11, Hadoop 3, and at least ZooKeeper 3.5 (at least 3.8 was current at the time of
+this writing and is recommended).
+
+The basic upgrade sequence is:
+
+- upgrade to at least Accumulo 1.10 first (if necessary)
+- stop Accumulo 1.10 or 2.0
+- prepare your installation of Accumulo 2.1 through whatever means you obtain the binaries and
+  configure it in your environment
+- start ZooKeeper and HDFS.
+- (optional - but recommended) create a ZooKeeper snapshot
+- (optional - but recommended) validate the ZooKeeper ACLs. See [ZooKeeper ACLs]({% durl troubleshooting/zookeeper#zookeeper-acls %})
+- (required if not using the provided scripts to start 2.1) run the `RenameMasterDirInZK` utility
+- (optional) run the pre-upgrade utility to convert the configuration in ZooKeeper
+- start Accumulo 2.1 for the first time to complete the upgrade
+
+**IMPORTANT!** before starting any upgrade process you need to make sure there are no outstanding
+FATE transactions. This includes transactions that have completed with `SUCCESS` or `FAILED` but
+have not been removed by the automatic clean-up process. This is required because the internal
+serialization of FATE transactions is not guaranteed to be compatible between versions, so *ANY*
+FATE transaction that is present will fail the upgrade. Procedures to manage FATE transactions,
+including commands to fail and delete transactions, are included in the [FATE Administration
+documentation]({% durl administration/fate#administration %}).
+
+Two significant changes occurred in 2.1 that are particularly important to note for upgrades:
+
+1. properties and services that referenced `master` are renamed `manager` and
+2. the internal property storage format in ZooKeeper has changed - instead of each table, namespace,
+   and the system configuration using separate ZooKeeper nodes for each of their properties, they
+   each now use only a single ZooKeeper node for all of their respective properties.
+
+Details on renaming the properties and the ZooKeeper property conversion are provided in the
+following sections. Additional information on configuring 2.1 is [available here]({% durl
+administration/in-depth-install %}).
+
+### Create ZooKeeper snapshot (optional - but recommended)
+
+Before upgrading to 2.1, it is suggested that you create a snapshot of the current ZooKeeper
+contents to be a backup in case issues occur and you need to rollback. There are no provisions to
+roll back to a previous Accumulo version once an upgrade process has been completed other than
+restoring from a snapshot of ZooKeeper.
+
+```
+$ACCUMULO_HOME/bin/accumulo dump-zoo --xml --root /accumulo | tee PATH_TO_SNAPSHOT
+```
+
+If you need to restore from the ZooKeeper snapshot see [these instructions]({% durl
+troubleshooting/tools#restorezookeeper %}).
+
+### Rename master Properties, Config Files, and Script References
+
+It is strongly recommended as a part of the upgrade to rename any properties in
+`accumulo.properties` (or properties specified on the command line) starting with `master.` to use
+the equivalent property starting with `manager.` instead, as the old properties will not be
+available in subsequent major releases. This version may log or display warnings if older properties
+are observed.
+
+Any reference to `master` in other scripts (e.g., invoking `accumulo-service master` from an init
+script) should be renamed to `manager` (for example, `accumulo-service manager`).
+
+If the manager is not started using the provided `accumulo-cluster` or `accumulo-service` scripts,
+then a one-time upgrade step will need to be performed. Run the `RenameMasterDirInZK` utility after
+installing 2.1 but before starting it.
+
+```
+${ACCUMULO_HOME}/bin/accumulo org.apache.accumulo.manager.upgrade.RenameMasterDirInZK
+```
+
+### Pre-Upgrade the property storage in ZooKeeper (optional)
+
+As mentioned above, the property storage in ZooKeeper has changed from many nodes per table,
+namespace, and the system configuration, to just a single node for each of those. Upgrading to use
+the new format does happen automatically when Accumulo 2.1 servers start up. However, you can
+optionally choose to convert them using a pre-upgrade step with the following command line utility.
+
+The property conversion can be done using a command line utility or it will occur automatically when
+the manager is started for the first time. Using the command line utility is optional, but may
+provide more flexibility in handling issues if they were to occur. With ZooKeeper running, the
+command to convert the properties is:
+
+```
+$ACCUMULO_HOME/bin/accumulo config-upgrade
+```
+
+The utility will print messages about its progress as it converts them.
+
+```
+2022-11-03T14:35:44,596 [conf.SiteConfiguration] INFO : Found Accumulo configuration on classpath at /opt/fluo-uno/install/accumulo-3.0.0-SNAPSHOT/conf/accumulo.properties
+2022-11-03T14:35:45,511 [util.ConfigPropertyUpgrader] INFO : Upgrade system config properties for a1518a8b-f007-41ee-af2c-5cc760abe7fd
+2022-11-03T14:35:45,675 [util.ConfigTransformer] INFO : property transform for SystemPropKey{InstanceId=a1518a8b-f007-41ee-af2c-5cc760abe7fd'} took 29ms ms, delete count: 1, error count: 0
+2022-11-03T14:35:45,683 [util.ConfigPropertyUpgrader] INFO : Upgrading namespace +accumulo base path: /accumulo/a1518a8b-f007-41ee-af2c-5cc760abe7fd/namespaces/+accumulo/conf
+...
+2022-11-03T14:35:45,737 [util.ConfigPropertyUpgrader] INFO : Upgrading table !0 base path: /accumulo/a1518a8b-f007-41ee-af2c-5cc760abe7fd/tables/!0/conf
+2022-11-03T14:35:45,813 [util.ConfigTransformer] INFO : property transform for TablePropKey{TableId=!0'} took 72ms ms, delete count: 26, error count: 0
+...
+```
+
+If the upgrade utility is not used, similar messages will print to the server logs when 2.1 starts.
+
+When the property conversion is complete, you can verify the configuration using the
+[zoo-info-viewer]({% durl /troubleshooting/tools#zoo-info-viewer-new-in-21 %}) utility (new in 2.1)
+
+```
+$ACCUMULO_HOME/bin/accumulo zoo-info-viewer  --print-props
+```
+
+### Create new cluster configuration file
+
+The `accumulo-cluster` script now uses a single file that defines the location of the managers,
+tservers, etc. You can create this file using the command `accumulo-cluster create-config`. You will
+then need to transfer the contents of the current individual files to this new consolidated file.
+
+### Encrypted Instances
+
+**Warning**: Upgrading a previously encrypted instance with the experimental encryption properties
+is not supported as the implementation and properties have changed. You may be able to disable
+encryption and compact your files without encryption, in order to upgrade. Encryption remains an
+experimental feature, and may change between versions. It should be used with care. If you need
+help, consider reaching out to our mailing list.
+
+## Upgrading from 1.8/9/10 to 2.0
 
 Follow the steps below to upgrade your Accumulo instance and client to 2.0.
 
@@ -35,9 +161,9 @@ Below are some changes in 2.0 that you should be aware of:
 * `accumulo-service` script can be used to start/stop Accumulo services (i.e master, tablet server, monitor) on a single node.
     - Can be used even if Accumulo was started using `accumulo-cluster` script.
 * `accumulo-env.sh` constructs environment variables (such as `JAVA_OPTS` and `CLASSPATH`) used when running Accumulo processes
-    - This file was used in Accumulo 1.x but has changed signficantly for 2.0
+    - This file was used in Accumulo 1.x but has changed significantly for 2.0
     - Environment variables (such as `$cmd`, `$bin`, `$conf`) are set before `accumulo-env.sh` is loaded and can be used to customize environment.
-    - The `JAVA_OPTS` variable is constructed in `accumulo-env.sh` to pass command-line arguments to the `java` command that the starts Accumulo processes
+    - The `JAVA_OPTS` variable is constructed in `accumulo-env.sh` to pass command line arguments to the `java` command that the starts Accumulo processes
       (i.e. `java $JAVA_OPTS main.class.for.$cmd`).
     - The `CLASSPATH` variable sets the Java classpath used when running Accumulo processes. It can be modified to upgrade dependencies or use vendor-specific
       distributions of Hadoop.
@@ -64,7 +190,7 @@ that users start using the new API, the old API will continue to be supported th
 
 Below is a list of client API changes that users are required to make for 2.0:
 
-* Update your pom.xml use Accumulo 2.0. Also, update any Hadoop & ZooKeeper dependencies in your pom.xml to match the versions runing on your cluster.
+* Update your pom.xml use Accumulo 2.0. Also, update any Hadoop & ZooKeeper dependencies in your pom.xml to match the versions running on your cluster.
   ```xml
   <dependency>
     <groupId>org.apache.accumulo</groupId>
@@ -72,7 +198,7 @@ Below is a list of client API changes that users are required to make for 2.0:
     <version>2.0.1</version>
   </dependency>
   ```
-* ClientConfiguration objects can no longer be ceated using `new ClientConfiguration()`.
+* ClientConfiguration objects can no longer be created using `new ClientConfiguration()`.
    * Use `ClientConfiguration.create()` instead
 * Some API deprecated in 1.x releases was dropped
 * Aggregators have been removed
@@ -80,7 +206,7 @@ Below is a list of client API changes that users are required to make for 2.0:
 Below is a list of recommended client API changes:
 
 * The API for [creating Accumulo clients]({% durl getting-started/clients#creating-an-accumulo-client %}) has changed in 2.0.
-  * The old API using [ZooKeeeperInstance], [Connector], [Instance], and [ClientConfiguration] has been deprecated.
+  * The old API using [ZooKeeperInstance], [Connector], [Instance], and [ClientConfiguration] has been deprecated.
   * [Connector] objects can be created from an [AccumuloClient] object using [Connector.from()]
 * Accumulo's [MapReduce API]({% durl development/mapreduce %}) has changed in 2.0.
   * A new API has been introduced in the `org.apache.accumulo.hadoop` package of the `accumulo-hadoop-mapreduce` jar.
@@ -101,7 +227,7 @@ For upgrades from prior to 1.7, follow the upgrade instructions to 1.7 first.
 
 The recommended way to upgrade from a prior 1.7.x release is to stop Accumulo, upgrade to 1.7.y and then start 1.7.y.
 
-When upgrading, there is a known issue if the upgrade fails due to outstanding [FATE] operations, see [ACCUMULO-4496] The work around if this situation is encountered:
+When upgrading, there is a known issue if the upgrade fails due to outstanding [FATE] operations, see [ACCUMULO-4496] The workaround if this situation is encountered:
 
 - Start tservers
 - Start shell
@@ -161,7 +287,7 @@ Prior to upgrading you must:
 
 - Verify that there are no outstanding FATE operations
   - Under 1.4 you can list what's in FATE by running ```$ACCUMULO_HOME/bin/accumulo org.apache.accumulo.server.fate.Admin print```
-  - Note that operations in any state will prevent an upgrade. It is safe to delete operations with status SUCCESSFUL. For others, 
+  - Note that operations in any state will prevent an upgrade. It is safe to delete operations with status SUCCESSFUL. For others,
       you should restart your 1.4 cluster and allow them to finish.
 - Stop the 1.4 instance.
 - Configure 1.6 to use the hdfs directory, walog directories, and zookeepers that 1.4 was using.
@@ -183,7 +309,7 @@ Note that the LocalWALRecovery tool does not delete the local files. Once you co
 
 This happens automatically the first time Accumulo 1.5 is started.
 
-- Stop the 1.4 instance.  
+- Stop the 1.4 instance.
 - Configure 1.5 to use the hdfs directory, walog directories, and zookeepers
   that 1.4 was using.
 - Copy other 1.4 configuration options as needed.
@@ -191,9 +317,10 @@ This happens automatically the first time Accumulo 1.5 is started.
 
 [FATE]: {{ site.baseurl }}/1.7/accumulo_user_manual.html#_fault_tolerant_executor_fate
 [ACCUMULO-4496]: https://issues.apache.org/jira/browse/ACCUMULO-4496
-[ZooKeeeperInstance]: {% jurl org.apache.accumulo.core.client.ZooKeeperInstance %}
+[ZooKeeperInstance]: {% jurl org.apache.accumulo.core.client.ZooKeeperInstance %}
 [Connector]: {% jurl org.apache.accumulo.core.client.Connector %}
 [Instance]: {% jurl org.apache.accumulo.core.client.Instance %}
 [ClientConfiguration]: {% jurl org.apache.accumulo.core.client.ClientConfiguration %}
 [AccumuloClient]: {% jurl org.apache.accumulo.core.client.AccumuloClient %}
 [Connector.from()]: {% jurl org.apache.accumulo.core.client.Connector#from-org.apache.accumulo.core.client.AccumuloClient- %}
+[contact]: {{ site.baseurl }}/contact-us

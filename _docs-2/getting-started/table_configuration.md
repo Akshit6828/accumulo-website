@@ -70,7 +70,7 @@ client.
 
 Constraints can be enabled by setting a table property as follows:
 
-```
+```console
 user@myinstance mytable> constraint -t mytable -a com.test.ExampleConstraint com.test.AnotherConstraint
 
 user@myinstance mytable> constraint -l
@@ -78,7 +78,7 @@ com.test.ExampleConstraint=1
 com.test.AnotherConstraint=2
 ```
 
-Currently there are no general-purpose constraints provided with the Accumulo
+Currently, there are no general-purpose constraints provided with the Accumulo
 distribution. New constraints can be created by writing a Java class that implements
 the [Constraint][constraint] interface.
 
@@ -183,7 +183,7 @@ given date. The default is to return the one most recent version.
 The version policy can be changed by changing the VersioningIterator options for a
 table as follows:
 
-```
+```console
 user@myinstance mytable> config -t mytable -s table.iterator.scan.vers.opt.maxVersions=3
 
 user@myinstance mytable> config -t mytable -s table.iterator.minc.vers.opt.maxVersions=3
@@ -191,9 +191,9 @@ user@myinstance mytable> config -t mytable -s table.iterator.minc.vers.opt.maxVe
 user@myinstance mytable> config -t mytable -s table.iterator.majc.vers.opt.maxVersions=3
 ```
 
-When a table is created, by default its configured to use the
+When a table is created, by default it's configured to use the
 VersioningIterator and keep one version. A table can be created without the
-VersioningIterator with the -ndi option in the shell. Also the Java API
+VersioningIterator with the -ndi option in the shell. Also, the Java API
 has the following method
 
 ```java
@@ -205,7 +205,7 @@ client.tableOperations.create(String tableName, boolean limitVersion);
 Accumulo 1.2 introduces the concept of logical time. This ensures that timestamps
 set by Accumulo always move forward. This helps avoid problems caused by
 TabletServers that have different time settings. The per tablet counter gives unique
-one up time stamps on a per mutation basis. When using time in milliseconds, if
+one up time stamps on a per-mutation basis. When using time in milliseconds, if
 two things arrive within the same millisecond then both receive the same
 timestamp. When using time in milliseconds, Accumulo set times will still
 always move forward and never backwards.
@@ -234,7 +234,7 @@ The AgeOff filter can be configured to remove data older than a certain date or 
 amount of time from the present. The following example sets a table to delete
 everything inserted over 30 seconds ago:
 
-```
+```console
 user@myinstance> createtable filtertest
 
 user@myinstance filtertest> setiter -t filtertest -scan -minc -majc -p 10 -n myfilter -ageoff
@@ -307,7 +307,7 @@ The table would reflect only one aggregate value:
 
 Combiners can be enabled for a table using the setiter command in the shell. Below is an example.
 
-```
+```console
 root@a14 perDayCounts> setiter -t perDayCounts -p 10 -scan -minc -majc -n daycount
                        -class org.apache.accumulo.core.iterators.user.SummingCombiner
 TypedValueCombiner can interpret Values as a variety of number encodings
@@ -343,115 +343,13 @@ in reduced read latency. Read the [Caching] documentation to learn more.
 
 ## Compaction
 
-As data is written to Accumulo it is buffered in memory. The data buffered in
-memory is eventually written to HDFS on a per tablet basis. Files can also be
-added to tablets directly by bulk import. In the background tablet servers run
-major compactions to merge multiple files into one. The tablet server has to
-decide which tablets to compact and which files within a tablet to compact.
-This decision is made using the compaction ratio, which is configurable on a
-per table basis by the [table.compaction.major.ratio] property.
-
-Increasing this ratio will result in more files per tablet and less compaction
-work. More files per tablet means more higher query latency. So adjusting
-this ratio is a trade off between ingest and query performance. The ratio
-defaults to 3.
-
-The way the ratio works is that a set of files is compacted into one file if the
-sum of the sizes of the files in the set is larger than the ratio multiplied by
-the size of the largest file in the set. If this is not true for the set of all
-files in a tablet, the largest file is removed from consideration, and the
-remaining files are considered for compaction. This is repeated until a
-compaction is triggered or there are no files left to consider.
-
-The number of background threads tablet servers use to run major and minor
-compactions is configured by the [tserver.compaction.major.concurrent.max]
-and [tserver.compaction.minor.concurrent.max] properties respectively.
-
-The numbers of major and minor compactions running and queued is visible on the
-Accumulo monitor page. This allows you to see if compactions are backing up
-and adjustments to the above settings are needed. When adjusting the number of
-threads available for compactions, consider the number of cores and other tasks
-running on the nodes such as maps and reduces.
-
-If major compactions are not keeping up, then the number of files per tablet
-will grow to a point such that query performance starts to suffer. One way to
-handle this situation is to increase the compaction ratio. For example, if the
-compaction ratio were set to 1, then every new file added to a tablet by minor
-compaction would immediately queue the tablet for major compaction. So if a
-tablet has a 200M file and minor compaction writes a 1M file, then the major
-compaction will attempt to merge the 200M and 1M file. If the tablet server
-has lots of tablets trying to do this sort of thing, then major compactions
-will back up and the number of files per tablet will start to grow, assuming
-data is being continuously written. Increasing the compaction ratio will
-alleviate backups by lowering the amount of major compaction work that needs to
-be done.
-
-Another option to deal with the files per tablet growing too large is to adjust
-the [table.file.max] property. When a tablet reaches this number of files and needs
-to flush its in-memory data to disk, it will choose to do a merging minor compaction.
-A merging minor compaction will merge the tablet's smallest file with the data in memory at
-minor compaction time. Therefore the number of files will not grow beyond this
-limit. This will make minor compactions take longer, which will cause ingest
-performance to decrease. This can cause ingest to slow down until major
-compactions have enough time to catch up. When adjusting this property, also
-consider adjusting the compaction ratio. Ideally, merging minor compactions
-never need to occur and major compactions will keep up. It is possible to
-configure the file max and compaction ratio such that only merging minor
-compactions occur and major compactions never occur. This should be avoided
-because doing only merging minor compactions causes O(N<sup>2</sup>) work to be done.
-The amount of work done by major compactions is `O(N*log<sub>R</sub>(N))` where
-R is the compaction ratio.
-
-Compactions can be initiated manually for a table. To initiate a minor
-compaction, use the `flush` command in the shell. To initiate a major compaction,
-use the `compact` command in the shell:
-
-    user@myinstance mytable> compact -t mytable
-
-If needed, the compaction can be canceled using `compact --cancel -t mytable`.
-
-The `compact` command will compact all tablets in a table to one file. Even tablets
-with one file are compacted. This is useful for the case where a major compaction
-filter is configured for a table. In 1.4, the ability to compact a range of a table
-was added. To use this feature specify start and stop rows for the compact command.
-This will only compact tablets that overlap the given row range.
-
-### Compaction Strategies
-
-The default behavior of major compactions is defined in the class {% jlink org.apache.accumulo.tserver.compaction.DefaultCompactionStrategy %}.
-This behavior can be changed by overriding [table.majc.compaction.strategy] with a fully
-qualified class name.
-
-Custom compaction strategies can have additional properties that are specified with the
-{% plink table.majc.compaction.strategy.opts.\* %} prefix.
-
-Accumulo provides a few classes that can be used as an alternative compaction strategy. These classes are located in the 
-{% jlink -f org.apache.accumulo.tserver.compaction %} package. {% jlink org.apache.accumulo.tserver.compaction.EverythingCompactionStrategy %}
-will simply compact all files. This is the strategy used by the user `compact` command. 
-
-{% jlink org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy %} is
-a compaction strategy that supports a few options based on file size.  It
-supports filtering out large files from ever being included in a compaction.
-It also supports using a different compression algorithm for larger files.
-This allows frequent compactions of smaller files to use a fast algorithm and
-infrequent compactions of more data to use a slower algorithm.  Using this may
-enable an increase in throughput w/o using a lot more space.
-
-The following shell command configures a table to use snappy for small files,
-gzip for files over 100M, and avoid compacting any file larger than 250M.
-
-    config -t myTable -s table.file.compress.type=snappy
-    config -t myTable -s table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy
-    config -t myTable -s table.majc.compaction.strategy.opts.filter.size=250M
-    config -t myTable -s table.majc.compaction.strategy.opts.large.compress.threshold=100M
-    config -t myTable -s table.majc.compaction.strategy.opts.large.compress.type=gzip
-
+See {% dlink administration/compaction %}
 ## Pre-splitting tables
 
 Accumulo will balance and distribute tables across servers. Before a
 table gets large, it will be maintained as a single tablet on a single
 server. This limits the speed at which data can be added or queried
-to the speed of a single node. To improve performance when the a table
+to the speed of a single node. To improve performance when a table
 is new, or small, you can add split points and generate new tablets.
 
 In the shell:
@@ -550,14 +448,14 @@ flush option is present and is enabled by default in the shell. If the flush
 option is not enabled, then any data the source table currently has in memory
 will not exist in the clone.
 
-A cloned table copies the configuration of the source table. However the
+A cloned table copies the configuration of the source table. However, the
 permissions of the source table are not copied to the clone. After a clone is
 created, only the user that created the clone can read and write to it.
 
 In the following example we see that data inserted after the clone operation is
 not visible in the clone.
 
-```
+```console
 root@a14> createtable people
 
 root@a14 people> insert 890435 name last Doe
@@ -591,7 +489,7 @@ inserted into cic and its flushed, du shows the two tables still share 428M but
 cic has 226 bytes to itself. Finally, table cic is compacted and then du shows
 that each table uses 428M.
 
-```
+```console
 root@a14> du ci
              428,482,573 [ci]
 
@@ -627,7 +525,7 @@ root@a14 cic>
 ## Exporting Tables
 
 Accumulo supports exporting tables for the purpose of copying tables to another
-cluster. Exporting and importing tables preserves the tables configuration,
+cluster. Exporting and importing tables preserves the tables' configuration,
 splits, and logical time. Tables are exported and then copied via the hadoop
 `distcp` command. To export a table, it must be offline and stay offline while
 `distcp` runs. Staying offline prevents files from being deleted during the process.
@@ -719,9 +617,5 @@ preserved.
 [Scanner]: {% jurl org.apache.accumulo.core.client.Scanner %}
 [BatchScanner]: {% jurl org.apache.accumulo.core.client.BatchScanner %}
 [Caching]: {% durl administration/caching %}
-[table.compaction.major.ratio]: {% purl table.compaction.major.ratio %}
-[tserver.compaction.major.concurrent.max]: {% purl tserver.compaction.major.concurrent.max %}
-[tserver.compaction.minor.concurrent.max]: {% purl tserver.compaction.minor.concurrent.max %}
-[table.file.max]: {% purl table.file.max %}
 [table.bloom.enabled]: {% purl table.bloom.enabled %}
 [table.file.compress.type]: {% purl table.file.compress.type %}

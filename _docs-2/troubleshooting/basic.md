@@ -14,7 +14,7 @@ these remote computers writes down events as they occur, into a local
 file. By default, this is defined in `conf/accumulo-env.sh` as `ACCUMULO_LOG_DIR`.
 Look in the `$ACCUMULO_LOG_DIR/tserver*.log` file.  Specifically, check the end of the file.
 
-**The tablet server did not start and the debug log does not exists!  What happened?**
+**The tablet server did not start and the debug log does not exist!  What happened?**
 
 When the individual programs are started, the stdout and stderr output
 of these programs are stored in `.out` and `.err` files in
@@ -28,7 +28,7 @@ There's a small web server that collects information about all the
 components that make up a running Accumulo instance. It will highlight
 unusual or unexpected conditions.
 
-Point your browser to the monitor (typically the master host, on port 9995).  Is anything red or yellow?
+Point your browser to the monitor (typically the manager host, on port 9995).  Is anything red or yellow?
 
 **My browser is reporting connection refused, and I cannot get to the monitor**
 
@@ -53,16 +53,20 @@ monitor while on the machine running the monitor:
 
 Verify that you are not firewalled from the monitor if it is running on a remote host.
 
-**The monitor responds, but there are no numbers for tservers and tables.  The summary page says the master is down.**
+**The monitor responds, but there are no numbers for tservers and tables.  The summary page says the manager is down.**
 
-The monitor program gathers all the details about the master and the
-tablet servers through the master. It will be mostly blank if the
-master is down. Check for a running master.
+The monitor program gathers all the details about the manager and the
+tablet servers through the manager. It will be mostly blank if the
+manager is down. Check for a running manager.
 
 **The ZooKeeper information is not available on the Overview page.**
 
 The monitor uses the ZooKeeper `stat` [four-letter-word][zk-4lw] command to retrieve information.
 The ZooKeeper configuration may require explicitly listing the `stat` command in the four-letter-word whitelist.
+
+**I've lost the Accumulo root password, now what?**
+
+Running `accumulo init --reset-security` will prompt you for a new root password. CAUTION: this command will delete all existing users. You will need to re-create all other users and set permissions accordingly. Running the `accumulo admin dumpConfig` command will output current configuration, including current users, which may aid in this process.
 
 ## Accumulo Processes
 
@@ -98,13 +102,13 @@ Sometimes you can kill a "stuck" tablet server by deleting its lock in zookeeper
     $ accumulo org.apache.accumulo.server.util.TabletServerLocks -list
                       127.0.0.1:9997             null
 
-You can find the master and instance id for any accumulo instances using the same zookeeper instance:
+You can find the manager and instance id for any accumulo instances using the same zookeeper instance:
 
 ```
 $ accumulo org.apache.accumulo.server.util.ListInstances
 INFO : Using ZooKeepers localhost:2181
 
- Instance Name       | Instance ID                          | Master
+ Instance Name       | Instance ID                          | Manager
 ---------------------+--------------------------------------+-------------------------------
               "test" | 6140b72e-edd8-4126-b2f5-e74a8bbe323b |                127.0.0.1:9999
 ```
@@ -124,7 +128,7 @@ undesirable to ssh to every node in the cluster to ensure that all hosts are run
 
 **My process died again. Should I restart it via `cron` or tools like `supervisord`?**
 
-A repeatedly dying Accumulo process is a sign of a larger problem. Typically these problems are due to a
+A repeatedly dying Accumulo process is a sign of a larger problem. Typically, these problems are due to a
 misconfiguration of Accumulo or over-saturation of resources. Blind automation of any service restart inside of Accumulo
 is generally an undesirable situation as it is indicative of a problem that is being masked and ignored. Accumulo
 processes should be stable on the order of months and not require frequent restart.
@@ -142,7 +146,7 @@ Use the [rfile-info] tool on a representative file to get some idea
 of the visibilities in the underlying data.
 
 Note that the use of `rfile-info` is an administrative tool and can only
-by used by someone who can access the underlying Accumulo data. It
+be used by someone who can access the underlying Accumulo data. It
 does not provide the normal access controls in Accumulo.
 
 ## Ingest

@@ -7,13 +7,13 @@ order: 6
 ## Overview
 
 Accumulo has the ability to generate summary statistics about data in a table
-using user defined functions.  Currently these statistics are only generated for
+using user defined functions.  Currently, these statistics are only generated for
 data written to files.  Data recently written to Accumulo that is still in
 memory will not contribute to summary statistics.
 
 This feature can be used to inform a user about what data is in their table.
 Summary statistics can also be used by compaction strategies to make decisions
-about which files to compact.  
+about which files to compact.
 
 Summary data is stored in each file Accumulo produces.  Accumulo can gather
 summary information from across a cluster merging it along the way.  In order
@@ -71,91 +71,93 @@ class has options for creating RFiles with embedded summary data.
 
 This example walks through using summarizers in the Accumulo shell.  Below, a
 table is created and some data is inserted to summarize.
-
-    root@uno> createtable summary_test
-    root@uno summary_test> setauths -u root -s PI,GEO,TIME
-    root@uno summary_test> insert 3b503bd name last Doe
-    root@uno summary_test> insert 3b503bd name first John
-    root@uno summary_test> insert 3b503bd contact address "123 Park Ave, NY, NY" -l PI&GEO
-    root@uno summary_test> insert 3b503bd date birth "1/11/1942" -l PI&TIME
-    root@uno summary_test> insert 3b503bd date married "5/11/1962" -l PI&TIME
-    root@uno summary_test> insert 3b503bd contact home_phone 1-123-456-7890 -l PI
-    root@uno summary_test> insert d5d18dd contact address "50 Lake Shore Dr, Chicago, IL" -l PI&GEO
-    root@uno summary_test> insert d5d18dd name first Jane
-    root@uno summary_test> insert d5d18dd name last Doe
-    root@uno summary_test> insert d5d18dd date birth 8/15/1969 -l PI&TIME
-    root@uno summary_test> scan -s PI,GEO,TIME
-    3b503bd contact:address [PI&GEO]    123 Park Ave, NY, NY
-    3b503bd contact:home_phone [PI]    1-123-456-7890
-    3b503bd date:birth [PI&TIME]    1/11/1942
-    3b503bd date:married [PI&TIME]    5/11/1962
-    3b503bd name:first []    John
-    3b503bd name:last []    Doe
-    d5d18dd contact:address [PI&GEO]    50 Lake Shore Dr, Chicago, IL
-    d5d18dd date:birth [PI&TIME]    8/15/1969
-    d5d18dd name:first []    Jane
-    d5d18dd name:last []    Doe
+```console
+root@uno> createtable summary_test
+root@uno summary_test> setauths -u root -s PI,GEO,TIME
+root@uno summary_test> insert 3b503bd name last Doe
+root@uno summary_test> insert 3b503bd name first John
+root@uno summary_test> insert 3b503bd contact address "123 Park Ave, NY, NY" -l PI&GEO
+root@uno summary_test> insert 3b503bd date birth "1/11/1942" -l PI&TIME
+root@uno summary_test> insert 3b503bd date married "5/11/1962" -l PI&TIME
+root@uno summary_test> insert 3b503bd contact home_phone 1-123-456-7890 -l PI
+root@uno summary_test> insert d5d18dd contact address "50 Lake Shore Dr, Chicago, IL" -l PI&GEO
+root@uno summary_test> insert d5d18dd name first Jane
+root@uno summary_test> insert d5d18dd name last Doe
+root@uno summary_test> insert d5d18dd date birth 8/15/1969 -l PI&TIME
+root@uno summary_test> scan -s PI,GEO,TIME
+3b503bd contact:address [PI&GEO]    123 Park Ave, NY, NY
+3b503bd contact:home_phone [PI]    1-123-456-7890
+3b503bd date:birth [PI&TIME]    1/11/1942
+3b503bd date:married [PI&TIME]    5/11/1962
+3b503bd name:first []    John
+3b503bd name:last []    Doe
+d5d18dd contact:address [PI&GEO]    50 Lake Shore Dr, Chicago, IL
+d5d18dd date:birth [PI&TIME]    8/15/1969
+d5d18dd name:first []    Jane
+d5d18dd name:last []    Doe
+```
 
 After inserting the data, summaries are requested below.  No summaries are returned.
-
-    root@uno summary_test> summaries
+```console
+root@uno summary_test> summaries
+```
 
 The visibility summarizer is configured below and the table is flushed.
 Flushing the table creates a file creating summary data in the process. The
 summary data returned counts how many times each column visibility occurred.
 The statistics with a `c:` prefix are visibilities.  The others are generic
-statistics created by the CountingSummarizer that VisibilitySummarizer extends. 
-
-    root@uno summary_test> config -t summary_test -s table.summarizer.vis=org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer
-    root@uno summary_test> summaries
-    root@uno summary_test> flush -w
-    2017-02-24 19:54:46,090 [shell.Shell] INFO : Flush of table summary_test completed.
-    root@uno summary_test> summaries
-    Summarizer         : org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer vis {}
-    File Statistics    : [total:1, missing:0, extra:0, large:0]
-    Summary Statistics : 
-       c:                                                           = 4
-       c:PI                                                         = 1
-       c:PI&GEO                                                     = 2
-       c:PI&TIME                                                    = 3
-       emitted                                                      = 10
-       seen                                                         = 10
-       tooLong                                                      = 0
-       tooMany                                                      = 0
-
+statistics created by the CountingSummarizer that VisibilitySummarizer extends.
+```console
+root@uno summary_test> config -t summary_test -s table.summarizer.vis=org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer
+root@uno summary_test> summaries
+root@uno summary_test> flush -w
+2017-02-24 19:54:46,090 [shell.Shell] INFO : Flush of table summary_test completed.
+root@uno summary_test> summaries
+Summarizer         : org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer vis {}
+File Statistics    : [total:1, missing:0, extra:0, large:0]
+Summary Statistics :
+   c:                                                           = 4
+   c:PI                                                         = 1
+   c:PI&GEO                                                     = 2
+   c:PI&TIME                                                    = 3
+   emitted                                                      = 10
+   seen                                                         = 10
+   tooLong                                                      = 0
+   tooMany                                                      = 0
+```
 VisibilitySummarizer has an option `maxCounters` that determines the max number
 of column visibilities it will track.  Below this option is set and compaction
 is forced to regenerate summary data.  The new summary data only has three
 visibilities and now the `tooMany` statistic is 4.  This is the number of
 visibilities that were not counted.
 
-```
- root@uno summary_test> config -t summary_test -s table.summarizer.vis.opt.maxCounters=3
- root@uno summary_test> compact -w
- 2017-02-24 19:54:46,267 [shell.Shell] INFO : Compacting table ...
- 2017-02-24 19:54:47,127 [shell.Shell] INFO : Compaction of table summary_test completed for given range
- root@uno summary_test> summaries
-  Summarizer         : org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer vis {maxCounters=3}
-  File Statistics    : [total:1, missing:0, extra:0, large:0]
-  Summary Statistics : 
-     c:PI                                                         = 1
-     c:PI&GEO                                                     = 2
-     c:PI&TIME                                                    = 3
-     emitted                                                      = 10
-     seen                                                         = 10
-     tooLong                                                      = 0
-     tooMany                                                      = 4
+```console
+root@uno summary_test> config -t summary_test -s table.summarizer.vis.opt.maxCounters=3
+root@uno summary_test> compact -w
+2017-02-24 19:54:46,267 [shell.Shell] INFO : Compacting table ...
+2017-02-24 19:54:47,127 [shell.Shell] INFO : Compaction of table summary_test completed for given range
+root@uno summary_test> summaries
+   Summarizer         : org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer vis {maxCounters=3}
+   File Statistics    : [total:1, missing:0, extra:0, large:0]
+   Summary Statistics :
+      c:PI                                                         = 1
+      c:PI&GEO                                                     = 2
+      c:PI&TIME                                                    = 3
+      emitted                                                      = 10
+      seen                                                         = 10
+      tooLong                                                      = 0
+      tooMany                                                      = 4
 ```
 
-Another summarizer is configured below that tracks the number of deletes.  Also
+Another summarizer is configured below that tracks the number of deletes.  Also,
 a compaction strategy that uses this summary data is configured.  The
 `TooManyDeletesCompactionStrategy` will force a compaction of the tablet when
 the ratio of deletes to non-deletes is over 25%.  This threshold is
-configurable.  Below a delete is added and its reflected in the statistics.  In
+configurable.  Below a delete is added and it's reflected in the statistics.  In
 this case there is 1 delete and 10 non-deletes, not enough to force a
 compaction of the tablet.
 
-```
+```console
 root@uno summary_test> config -t summary_test -s table.summarizer.del=org.apache.accumulo.core.client.summary.summarizers.DeletesSummarizer
 root@uno summary_test> compact -w
 2017-02-24 19:54:47,282 [shell.Shell] INFO : Compacting table ...
@@ -169,7 +171,7 @@ root@uno summary_test> flush -w
 root@uno summary_test> summaries
  Summarizer         : org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer vis {maxCounters=3}
  File Statistics    : [total:2, missing:0, extra:0, large:0]
- Summary Statistics : 
+ Summary Statistics :
     c:PI                                                         = 1
     c:PI&GEO                                                     = 2
     c:PI&TIME                                                    = 4
@@ -180,7 +182,7 @@ root@uno summary_test> summaries
 
  Summarizer         : org.apache.accumulo.core.client.summary.summarizers.DeletesSummarizer del {}
  File Statistics    : [total:2, missing:0, extra:0, large:0]
- Summary Statistics : 
+ Summary Statistics :
     deletes                                                      = 1
     total                                                        = 11
 ```
@@ -191,7 +193,7 @@ compaction of all files is the only time when delete markers are dropped.  The
 compaction ratio was set to 10 above to show that the number of files did not
 trigger the compaction.   After the compaction there no deletes 6 non-deletes.
 
-```
+```console
 root@uno summary_test> deletemany -r d5d18dd -f
 [DELETED] d5d18dd contact:address [PI&GEO]
 [DELETED] d5d18dd name:first []
@@ -201,7 +203,7 @@ root@uno summary_test> flush -w
 root@uno summary_test> summaries
  Summarizer         : org.apache.accumulo.core.client.summary.summarizers.VisibilitySummarizer vis {maxCounters=3}
  File Statistics    : [total:1, missing:0, extra:0, large:0]
- Summary Statistics : 
+ Summary Statistics :
     c:PI                                                         = 1
     c:PI&GEO                                                     = 1
     c:PI&TIME                                                    = 2
@@ -212,10 +214,10 @@ root@uno summary_test> summaries
 
  Summarizer         : org.apache.accumulo.core.client.summary.summarizers.DeletesSummarizer del {}
  File Statistics    : [total:1, missing:0, extra:0, large:0]
- Summary Statistics : 
+ Summary Statistics :
     deletes                                                      = 0
     total                                                        = 6
-root@uno summary_test>   
+root@uno summary_test>
 ```
 
 [AccumuloFileOutputFormat]: {% jurl org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat %}

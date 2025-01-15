@@ -6,9 +6,9 @@ permalink: /people/
 
 <script type="text/javascript">
 
-// convert Apache IDs for PMC members into links to their Apache profile on people.apache.org
+// convert Apache IDs for committers into links to their Apache profile on people.apache.org
 $(function() {
-  $('table#pmc tbody tr td:first-child').each(function(i, obj) {
+  $('table.committers tbody tr td:first-child').each(function(i, obj) {
     var apacheid = $(obj).text();
     $(obj).html('<a href="https://people.apache.org/phonebook.html?uid=' + apacheid + '">' + apacheid + '</a>');
   });
@@ -16,16 +16,15 @@ $(function() {
 
 </script>
 
-## PMC and Committers
+## Committers and Current PMC Members
 
-{: .table .table-striped #pmc}
+{: .table .table-striped .committers #pmc}
 | apache id     | name                                              | organization                           | timezone |
 |---------------|---------------------------------------------------|----------------------------------------|----------|
 | acordova      | Aaron Cordova                                     | [Koverse][KOVERSE]                     |          |
 | adamjshook    | Adam J. Shook                                     | [Datacatessen][DATACATESS]             | [ET][ET] |
 | afuchs        | Adam Fuchs                                        | [sqrrl][SQRRL]                         | [ET][ET] |
-| alerman       | Adam Lerman                                       | [Applied Technology Group][ATG]        | [ET][ET] |
-| arvindsh      | Arvind Shyamsundar                                | [Microsoft][MICROSOFT]                 | [PT][PT] |
+| alerman       | Adam Lerman                                       | [Red Drum][REDDRUM]                     | [ET][ET] |
 | bhavanki      | Bill Havanki                                      | [Cloudera][CLOUDERA]                   | [ET][ET] |
 | billie        | Billie Rinaldi                                    | [Microsoft][MICROSOFT]                 | [ET][ET] |
 | bimargulies   | Benson Margulies                                  | [Basis Technology Corp.][BASISTECH]    | [ET][ET] |
@@ -45,11 +44,10 @@ $(function() {
 | jmanno        | [Jeffrey Manno](https://github.com/Manno15)       | [Arctic Slope Regional Corp.][ASRC]    | [ET][ET] |
 | jmark99       | [Mark Owens](https://github.com/jmark99)          |                                        | [ET][ET] |
 | jtrost        | Jason Trost                                       | [Endgame][ENDGAME]                     |          |
-| knarendran    | Karthick Narendran                                | [Microsoft][MICROSOFT]                 |[BST][BST]|
-| kturner       | [Keith Turner](https://github.com/keith-turner)   | [Microsoft][MICROSOFT]                 | [ET][ET] |
+| krathbun      | [Kevin Rathbun](https://github.com/kevinrr888)    | [Arctic Slope Regional Corp.][ASRC]    | [ET][ET] |
+| kturner       | [Keith Turner](https://github.com/keith-turner)   | [Wrench.io, LLC][WRENCH]               | [ET][ET] |
 | lstavarez     | [Luis Tavarez](https://github.com/lstav)          |                                        | [ET][ET] |
 | mdrob         | Mike Drob                                         | [Cloudera][CLOUDERA]                   | [ET][ET] |
-| medined       | David Medinets                                    |                                        |          |
 | mjwall        | Michael Wall                                      | [Arctic Slope Regional Corp.][ASRC]    | [ET][ET] |
 | mmiller       | [Michael Miller](https://github.com/milleruntime) | [Centroid, LLC][CENTROID]              | [ET][ET] |
 | mwalch        | [Mike Walch](https://github.com/mikewalch)        | [Peterson Technologies][PETERSON]      | [ET][ET] |
@@ -60,6 +58,15 @@ $(function() {
 | shutchis      | Shana Hutchison                                   | [University of Washington][UW]         | [PT][PT] |
 | ujustgotbilld | William Slacum                                    | [Miner &amp; Kasch][MINERKASCH]        | [ET][ET] |
 | vikrams       | Vikram Srivastava                                 | [Cloudera][CLOUDERA]                   | [PT][PT] |
+
+## Committers Only (PMC Emeritus)
+
+{: .table .table-striped .committers #pmc-emeritus}
+| apache id     | name                                              | organization                           | timezone |
+|---------------|---------------------------------------------------|----------------------------------------|----------|
+| arvindsh      | Arvind Shyamsundar                                | [Microsoft][MICROSOFT]                 | [PT][PT] |
+| knarendran    | Karthick Narendran                                | [Microsoft][MICROSOFT]                 |[BST][BST]|
+| medined       | David Medinets                                    |                                        |          |
 | vines         | John Vines                                        | [sqrrl][SQRRL]                         | [ET][ET] |
 
 ## Contributors
@@ -71,14 +78,15 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 |---------------------|-------------------------------------------------------------------|-----------------------|
 | Aaron Glahe         | [Data Tactics][DATATACT]                                          | [ET][ET]              |
 | Aishwarya Thangappa | [Microsoft][MICROSOFT]                                            | [PT][PT]              |
-| Akshit Mangotra     |                                                                   | [IST][IST]            |
+| Akshit Mangotra     |                                                                   | [IST][IST-India]      |
 | Al Krinker          |                                                                   | [ET][ET]              |
 | Alex Moundalexis    | [Cloudera][CLOUDERA]                                              | [ET][ET]              |
 | Ali Mustafa         | [FAST-NU][FAST-NU]                                                | [PKT][PKT]            |
-| Amisha Sahu         |                                                                   | [IST][IST]            |
+| Amisha Sahu         |                                                                   | [IST][IST-India]      |
 | Andrew George Wells | [ClearEdgeIT][CLEAREDGE]                                          | [ET][ET]              |
+| Arbaaz Khan         | [Arctic Slope Regional Corp.][ASRC]                               | [ET][ET]              |
 | Arshak Navruzyan    | [Argyle Data][ARGYLE]                                             |                       |
-| Ben Kelly           | [Microsoft][MICROSOFT]                                            | [GMT][GMT]/[IST][IST] |
+| Ben Kelly           | [Microsoft][MICROSOFT]                                            | [GMT][GMT]/[IST][IST-Ireland] |
 | Ben Manes           |                                                                   | [PT][PT]              |
 | Benjamin Fach       |                                                                   |                       |
 | Bob Thorman         | [AT&amp;T][ATT]                                                   |                       |
@@ -90,6 +98,7 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Craig Scheiderer    | [Arctic Slope Regional Corp.][ASRC]                               | [ET][ET]              |
 | Damon Brown         | [Tetra Concepts LLC][TETRA]                                       | [ET][ET]              |
 | Dane Magbuhos       |                                                                   | [ET][ET]              |
+| Daniel Roberts      | [Sentinel Solutions][SENTINEL]                                    | [ET][ET]              |
 | Dave Wang           | [Cloudera][CLOUDERA]                                              | [PT][PT]              |
 | David M. Lyle       |                                                                   |                       |
 | David Protzman      |                                                                   |                       |
@@ -100,7 +109,9 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Edward Yoon         |                                                                   |                       |
 | Elina Wise          | [Arctic Slope Regional Corp.][ASRC]                               | [ET][ET]              |
 | Eugene Cheipesh     |                                                                   |                       |
+| Filipe Rodrigues    |                                                                   | [GMT][GMT]            |
 | Gary Singh          | [Sabre Engineering][SABRE]                                        | [ET][ET]              |
+| Hannah Pellon       | [Tiber Technologies][TIBER]                                       | [ET][ET]              |
 | Harjit Singh        |                                                                   | [ET][ET]              |
 | Hasan Gürcan        |                                                                   | [CEST][CEST]          |
 | Hayden Marchant     |                                                                   |                       |
@@ -120,16 +131,18 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Jessica Seastrom    | [Cloudera][CLOUDERA]                                              | [ET][ET]              |
 | Jim Klucar          | [Splyt][SPLYT]                                                    | [ET][ET]              |
 | Joe Skora           |                                                                   |                       |
+| John Kucera         |                                                                   | [ET][ET]              |
 | John McNamee        |                                                                   |                       |
 | John Stoneham       |                                                                   | [ET][ET]              |
 | Jonathan M. Hsieh   | [Cloudera][CLOUDERA]                                              | [PT][PT]              |
 | Jonathan Park       | [sqrrl][SQRRL]                                                    | [ET][ET]              |
 | Joseph Koshakow     |                                                                   | [ET][ET]              |
 | Josselin Chevalay   |                                                                   | [CEST][CEST]          |
-| Kartik Sethi        |                                                                   | [IST](https://www.timeanddate.com/worldclock/india/new-delhi)                |
+| Kartik Sethi        |                                                                   | [IST][IST-India]      |
 | Kenneth McFarland   |                                                                   | [PT][PT]              |
 | Kevin Faro          | [Tetra Concepts LLC][TETRA]                                       | [ET][ET]              |
 | Kyle Van Gilson     |                                                                   |                       |
+| Kylian Meulin       |                                                                   | [GMT][GMT]/[BST][BST] |
 | Laura Peaslee       | [Objective Solutions, Inc.][OBJECTIVE]                            | [ET][ET]              |
 | Laura Schanno       | [Arctic Slope Regional Corp.][ASRC]                               | [ET][ET]              |
 | Luke Brassard       | [sqrrl][SQRRL]                                                    | [ET][ET]              |
@@ -141,7 +154,7 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Matthew Boehm       | [Novetta][NOVETTA]                                                | [ET][ET]              |
 | Matthew Dinep       | [Anavation, LLC] [ANAVATION]                                      | [ET][ET]              |
 | Matthew Kirkley     |                                                                   |                       |
-| Matthew Peterson    | [Applied Technology Group][ATG]                                   | [ET][ET]              |
+| Matthew Peterson    | [Tiber Technologies][TIBER]                                       | [ET][ET]              |
 | Max Jordan          |                                                                   |                       |
 | Michael Allen       | [sqrrl][SQRRL]                                                    | [ET][ET]              |
 | Michael Berman      | [sqrrl][SQRRL]                                                    | [ET][ET]              |
@@ -150,10 +163,12 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Morgan Haskel       |                                                                   |                       |
 | Nguessan Kouame     |                                                                   |                       |
 | Nicolás Alarcón R.  |                                                                   | [CEST][CEST]          |
+| Nikita Sirohi.      | [Ghost Locomotion][GHOST]                                         | [PT][PT]              |
 | Oren Falkowitz      | [sqrrl][SQRRL]                                                    | [ET][ET]              |
 | Phil Eberhardt      | [sqrrl][SQRRL]                                                    | [ET][ET]              |
 | Philip Young        |                                                                   |                       |
 | Pushpinder Heer     | [Applied Technical Systems][ATSID]                                | [PT][PT]              |
+| Randeep Singh       |                                                                   | [ET][ET]              |
 | Ravi Mutyala        | [Hortonworks][HORTONWORKS]                                        | [CT][CT]              |
 | Richard Eggert II   | [MasterPeace Solutions, Ltd][MASTERPEACE]                         | [ET][ET]              |
 | Russell Carter Jr   | [Arctic Slope Regional Corp.][ASRC]                               | [ET][ET]              |
@@ -163,8 +178,10 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Scott Kuehn         |                                                                   |                       |
 | Seth Falco          | [Elypia][ELYPIA]                                                  | [GMT][GMT]/[BST][BST] |
 | Shawn Walker        |                                                                   |                       |
+| Shivakumar Gangamath|                                                                   | [IST][IST-India]      |
 | Steve Loughran      | [Hortonworks][HORTONWORKS]                                        | [GMT][GMT]/[BST][BST] |
 | Supun Kamburugamuva |                                                                   |                       |
+| Swastik Pal         |                                                                   | [IST][IST-India]      |
 | Szabolcs Bukros     | [Cloudera][CLOUDERA]                                              | [CEST][CEST]          |
 | Takahiko Saito      | [Hortonworks][HORTONWORKS]                                        | [PT][PT]              |
 | Tao Xiao            | [Nara Institute of Science and Technology][NAIST]                 |                       |
@@ -182,14 +199,23 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 | Vincent Russell     |                                                                   |                       |
 | Volth               |                                                                   |                       |
 | Wil Selwood         | [Satellite Applications Catapult][SACAT]                          | [GMT][GMT]/[BST][BST] |
+| Xiao Wang           | [Stevens Institute of Technology][SIT]                            | [ET][ET]              |
 
+## More
+
+Many people with a background working with Accumulo can also be found on
+various professional and social networking sites. One such group is the [Apache
+Accumulo Professionals][linkedin-group] group on Linked in. Membership in these
+groups is not in any way an endorsement of their qualifications from either the
+ASF or the Apache Accumulo PMC.
+
+[linkedin-group]: https://www.linkedin.com/groups/4554913/
 [github-contributors]: https://github.com/apache/accumulo/graphs/contributors
 [ANAVATION]: https://www.anavationllc.com
 [ANTHEMENG]: https://www.anthemengineering.com
 [ARCUS]: http://www.arcus-research.com
 [ARGYLE]: https://mavenir.com
 [ASRC]: https://www.asrc.com
-[ATG]: https://www.atg-us.com
 [ATSID]: https://www.atsid.com
 [ATT]: https://www.att.com
 [BASISTECH]: https://www.basistech.com
@@ -203,6 +229,7 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 [ENDGAME]: https://www.endgame.com
 [FAST-NU]: https://nu.edu.pk/
 [FLYWHEEL]: https://flywheeldata.com
+[GHOST]: https://www.driveghost.com/
 [HORTONWORKS]: https://hortonworks.com
 [IBM]: https://www.ibm.com
 [JHUAPL]: https://www.jhuapl.edu
@@ -218,8 +245,11 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 [PETERSON]: https://www.ptech-llc.com
 [PHEMI]: https://www.phemi.com
 [PRAXIS]: https://www.praxiseng.com
+[REDDRUM]: https://www.red-drum.com
 [SABRE]: https://www.sabre-eng.com
 [SACAT]: https://sa.catapult.org.uk
+[SENTINEL]: https://sentinel-corp.com
+[SIT]: https://www.stevens.edu
 [SPLYT]: https://www.splyt.com
 [SQRRL]: http://sqrrl.com
 [SRA]: https://sra.com
@@ -231,7 +261,8 @@ GitHub also has a [contributor list][github-contributors] based on commits.
 [WAVE]: https://www.wavestrike.com
 [WRENCH]: https://wrench.io
 [BST]: https://www.timeanddate.com/time/zones/bst
-[IST]: https://www.timeanddate.com/time/zones/ist-ireland
+[IST-Ireland]: https://www.timeanddate.com/time/zones/ist-ireland
+[IST-India]: https://www.timeanddate.com/time/zones/ist
 [CT]: https://www.timeanddate.com/time/zones/ct
 [ET]: https://www.timeanddate.com/time/zones/et
 [GMT]: https://www.timeanddate.com/time/zones/gmt

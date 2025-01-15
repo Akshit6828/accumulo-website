@@ -13,7 +13,7 @@ Configuration is managed differently for Accumulo clients and servers.
 
 ## Server Configuration
 
-Accumulo processes (i.e master, tablet server, monitor, etc) are configured by [server properties] whose values can be
+Accumulo processes (i.e. manager, tablet server, monitor, etc.) are configured by [server properties] whose values can be
 set in the following configuration locations (with increasing precedence):
 
 1. [Default](#default) - All properties have a default value
@@ -34,12 +34,12 @@ While default values have the lowest precedence, they are usually optimal.  Howe
 ### Site
 
 Site configuration refers to [server properties] set in the [accumulo.properties] file which can be found in the `conf/` directory. Site configuration will override the default value
-of a property. If you are running Accumulo on a cluster, any updates to accumulo.properties must be synced across the cluster. Accumulo processes (master, tserver, etc) read their
+of a property. If you are running Accumulo on a cluster, any updates to accumulo.properties must be synced across the cluster. Accumulo processes (manager, tserver, etc) read their
 local [accumulo.properties] on start up so processes must be restarted to apply changes. Certain properties can only be set in accumulo.properties. These properties have **zk mutable: no**
 in their description. Setting properties in accumulo.properties allows you to configure tablet servers with different settings.
 
 Site configuration can be overriden when starting an Accumulo process on the command line (by using the `-o` option):
-```
+```bash
 accumulo tserver -o instance.secret=mysecret -o instance.zookeeper.host=localhost:2181
 ```
 Overriding properties is useful if you can't change [accumulo.properties]. It's done when [running Accumulo using Docker](https://github.com/apache/accumulo-docker).
@@ -51,7 +51,9 @@ in their description on the [server properties] page. System configuration will 
 settings take effect immediately, some require a restart of the process which is indicated in the **zk mutable** section of their description. System configuration can be set using
 the following shell command:
 
-    config -s PROPERTY=VALUE
+```console
+config -s PROPERTY=VALUE
+```
 
 They can also be set using {% jlink org.apache.accumulo.core.client.admin.InstanceOperations %} in the Java API:
 
@@ -59,12 +61,25 @@ They can also be set using {% jlink org.apache.accumulo.core.client.admin.Instan
 client.instanceOperations().setProperty("table.durability", "flush");
 ```
 
+The java api also supports adding, modifying and removing multiple properties in a single operation:
+
+```java
+client.instanceOperations().modifyProperties(properties -> {
+  properties.remove("table.file.max");
+  properties.put("table.bloom.enabled", "true");
+  properties.put("table.bloom.error.rate", "0.75");
+  properties.put("table.bloom.size", "128000");
+});
+```
+
 ### Namespace
 
-Namespace configuration refers to [table.* properties] set for a certain table namespace (i.e group of tables). These settings are stored in ZooKeeper. Namespace configuration
+Namespace configuration refers to [table.* properties] set for a certain table namespace (i.e. group of tables). These settings are stored in ZooKeeper. Namespace configuration
 will override System configuration and can be set using the following shell command:
 
-    config -ns NAMESPACE -s PROPERTY=VALUE
+```console
+config -ns NAMESPACE -s PROPERTY=VALUE
+```
 
 It can also be set using {% jlink org.apache.accumulo.core.client.admin.NamespaceOperations %} in the Java API:
 
@@ -72,16 +87,40 @@ It can also be set using {% jlink org.apache.accumulo.core.client.admin.Namespac
 client.namespaceOperations().setProperty("mynamespace", "table.durability", "sync");
 ```
 
+The java api also supports adding, modifying and removing multiple properties in a single operation:
+
+```java
+client.namespaceOperations().modifyProperties("mynamespace", properties -> {
+        properties.remove("table.file.max");
+        properties.put("table.bloom.enabled", "true");
+        properties.put("table.bloom.error.rate", "0.75");
+        properties.put("table.bloom.size", "128000");
+        });
+```
+
 ### Table
 
 Table configuration refers to [table.* properties] set for a certain table. These settings are stored in ZooKeeper and can be set using the following shell command:
 
-    config -t TABLE -s PROPERTY=VALUE
+```console
+config -t TABLE -s PROPERTY=VALUE
+```
 
 They can also be set using {% jlink org.apache.accumulo.core.client.admin.TableOperations %} in the Java API:
 
 ```java
 client.tableOperations().setProperty("mytable", "table.durability", "log");
+```
+
+The java api also supports adding, modifying and removing multiple properties in a single operation:
+
+```java
+client.tableOperations().modifyProperties("mytable", properties -> {
+        properties.remove("table.file.max");
+        properties.put("table.bloom.enabled", "true");
+        properties.put("table.bloom.error.rate", "0.75");
+        properties.put("table.bloom.size", "128000");
+        });
 ```
 
 ### Zookeeper Considerations
@@ -104,7 +143,7 @@ Accumulo's current configuration can be viewed in the shell using the `config` c
 Below is an example shell output from viewing configuration for the table `foo`. Please note how `table.compaction.major.ratio`
 is set in multiple locations, but the value `1.6` set in the `table` scope is used because it has the highest precedence.
 
-```
+```console
 root@accumulo-instance> config -t foo
 ---------+---------------------------------------------+-----------------------
 SCOPE    | NAME                                        | VALUE

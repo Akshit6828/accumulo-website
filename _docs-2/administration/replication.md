@@ -26,19 +26,19 @@ space available on the primary system.
 
 Replication configurations can be considered as a directed graph which allows cycles.
 The systems in which data was replicated from is maintained in each Mutation which
-allow each system to determine if a peer has already has the data in which
+allow each system to determine if a peer already has the data in which
 the system wants to send.
 
 Data is replicated by using the Write-Ahead logs (WAL) that each TabletServer is
 already maintaining. TabletServers record which WALs have data that need to be
-replicated to the `accumulo.metadata` table. The Master uses these records,
+replicated to the `accumulo.metadata` table. The Manager uses these records,
 combined with the local Accumulo table that the WAL was used with, to create records
 in the `replication` table which track which peers the given WAL should be
-replicated to. The Master latter uses these work entries to assign the actual
+replicated to. The Manager latter uses these work entries to assign the actual
 replication task to a local TabletServer using ZooKeeper. A TabletServer will get
 a lock in ZooKeeper for the replication of this file to a peer, and proceed to
 replicate to the peer, recording progress in the `replication` table as
-data is successfully replicated on the peer. Later, the Master and Garbage Collector
+data is successfully replicated on the peer. Later, the Manager and Garbage Collector
 will remove records from the `accumulo.metadata` and `replication` tables
 and files from HDFS, respectively, after replication to all peers is complete.
 
@@ -73,7 +73,7 @@ To configure a peer with the name `peer1` which is an Accumulo system with an in
 and a ZooKeeper quorum of `10.0.0.1,10.0.2.1,10.0.3.1`, invoke the following
 command in the shell.
 
-```
+```console
 root@accumulo_primary> config -s
 replication.peer.peer1=org.apache.accumulo.tserver.replication.AccumuloReplicaSystem,accumulo_peer,10.0.0.1,10.0.2.1,10.0.3.1
 ```
@@ -83,7 +83,7 @@ to use when authenticating with this peer. On our peer, we make a special user
 which has permission to write to the tables we want to replicate data into, "replication"
 with a password of "password". We then need to record this in the primary's configuration.
 
-```
+```console
 root@accumulo_primary> config -s replication.peer.user.peer1=replication
 root@accumulo_primary> config -s replication.peer.password.peer1=password
 ```
@@ -93,7 +93,7 @@ file per peer can be configured instead of a password. The provided keytabs must
 by the unix user running Accumulo. They keytab for a peer can be unique from the
 keytab used by Accumulo or any keytabs for other peers.
 
-```
+```console
 accumulo@EXAMPLE.COM@accumulo_primary> config -s replication.peer.user.peer1=replication@EXAMPLE.COM
 accumulo@EXAMPLE.COM@accumulo_primary> config -s replication.peer.keytab.peer1=/path/to/replication.keytab
 ```
@@ -107,7 +107,7 @@ cluster, this is a table ID. In this example, we want to enable replication on
 `my_table` and configure our peer `accumulo_peer` as a target, sending
 the data to the table with an ID of `2` in `accumulo_peer`.
 
-```
+```console
 root@accumulo_primary> config -t my_table -s table.replication=true
 root@accumulo_primary> config -t my_table -s table.replication.target.accumulo_peer=2
 ```
@@ -133,14 +133,14 @@ and the full class name for the implementation. This can be configured via the s
 
 Two implementations of [WorkAssigner] are provided:
 
-1. The {% jlink org.apache.accumulo.master.replication.UnorderedWorkAssigner %} can be used to overcome the limitation
+1. The {% jlink org.apache.accumulo.manager.replication.UnorderedWorkAssigner %} can be used to overcome the limitation
 of only a single WAL being replicated to a target and peer at any time. Depending on the table schema,
 it's possible that multiple versions of the same Key with different values are infrequent or nonexistent.
 In this case, parallel replication to a peer and target is possible without any downsides. In the case
 where this implementation is used were column updates are frequent, it is possible that there will be
 an inconsistency between the primary and the peer.
 
-2. The {% jlink org.apache.accumulo.master.replication.SequentialWorkAssigner %} is configured for an
+2. The {% jlink org.apache.accumulo.manager.replication.SequentialWorkAssigner %} is configured for an
 instance. The SequentialWorkAssigner ensures that, per peer and each remote identifier, each WAL is
 replicated in the order in which they were created. This is sufficient to ensure that updates to a table
 will be replayed in the correct order on the peer. This implementation has the downside of only replicating
@@ -159,7 +159,7 @@ section of this document. Theoretically, an implementation of this interface cou
 
 The [AccumuloReplicaSystem] uses Thrift to communicate with a peer Accumulo instance
 and replicate the necessary data. The TabletServer running on the primary will communicate
-with the Master on the peer to request the address of a TabletServer on the peer which
+with the Manager on the peer to request the address of a TabletServer on the peer which
 this TabletServer will use to replicate the data.
 
 The TabletServer on the primary will then replicate data in batches of a configurable
@@ -211,7 +211,7 @@ replication.name=primary
 replication.name=peer
 ```
 
-### masters and tservers files
+### managers and tservers files
 
 Be *sure* to use non-local IP addresses. Other nodes need to connect to it and using localhost will likely result in
 a local node talking to another local node.
@@ -225,7 +225,7 @@ The rest of the configuration is dynamic and is best configured on the fly (in Z
 The next series of command are to be run on the peer system. Create a user account for the primary instance called
 "peer". The password for this account will need to be saved in the configuration on the primary
 
-```
+```console
 root@peer> createtable my_table
 root@peer> createuser peer
 root@peer> grant -t my_table -u peer Table.WRITE
@@ -233,7 +233,7 @@ root@peer> grant -t my_table -u peer Table.READ
 root@peer> tables -l
 ```
 
-Remember what the table ID for 'my_table' is. You'll need that to configured the primary instance.
+Remember what the table ID for 'my_table' is. You'll need that to configure the primary instance.
 
 ### Primary
 
@@ -241,7 +241,7 @@ Next, configure the primary instance.
 
 #### Set up the table
 
-```
+```console
 root@primary> createtable my_table
 ```
 
@@ -252,7 +252,7 @@ that we want to use, and the configuration for the [AccumuloReplicaSystem]. In t
 Instance name for `peer` and the ZooKeeper quorum string. The configuration key is of the form
 `replication.peer.$peer_name`.
 
-```
+```console
 root@primary> config -s replication.peer.peer=org.apache.accumulo.tserver.replication.AccumuloReplicaSystem,peer,$peer_zk_quorum
 ```
 
@@ -261,7 +261,7 @@ root@primary> config -s replication.peer.peer=org.apache.accumulo.tserver.replic
 We want to use that special username and password that we created on the peer, so we have a means to write data to
 the table that we want to replicate to. The configuration key is of the form "replication.peer.user.$peer_name".
 
-```
+```console
 root@primary> config -s replication.peer.user.peer=peer
 root@primary> config -s replication.peer.password.peer=peer
 ```
@@ -276,13 +276,13 @@ The configuration for the AccumuloReplicaSystem is the table ID for the table on
 want to replicate into. Be sure to use the correct value for $peer_table_id. The configuration key is of
 the form "table.replication.target.$peer_name".
 
-```
+```console
 root@primary> config -t my_table -s table.replication.target.peer=$peer_table_id
 ```
 
 Finally, we can enable replication on this table.
 
-```
+```console
 root@primary> config -t my_table -s table.replication=true
 ```
 
@@ -300,7 +300,7 @@ reduce the latency for a batch of Mutations that have been written to Accumulo, 
 of seconds for replication once ingest is active. For a table which replication has just been enabled on, this is likely
 to take a few minutes before replication will begin.
 
-Once ingest is active and flowing into the system at a regular rate, replication should be occurring at a similar rate, 
+Once ingest is active and flowing into the system at a regular rate, replication should be occurring at a similar rate,
 given sufficient computing resources. Replication attempts to copy data at a rate that is to be considered low latency
 but is not a replacement for custom indexing code which can ensure near real-time referential integrity on secondary indexes.
 
